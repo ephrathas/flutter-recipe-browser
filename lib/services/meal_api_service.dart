@@ -9,7 +9,7 @@ import '../models/meal_category.dart';
 import 'api_exception.dart';
 
 /// Senior-level API service layer for TheMealDB.
-/// 
+///
 /// Refactored for maximum scalability and maintainability:
 /// - **Orchestrated Flow**: Centralized request/response lifecycle.
 /// - **Robust Decoding**: Defensive type checking for JSON maps.
@@ -35,7 +35,9 @@ class MealApiService {
       onSuccess: (data) {
         final List<dynamic>? categoriesJson = data['categories'];
         if (categoriesJson == null) {
-          throw ApiException.invalidResponse(details: 'Missing "categories" key');
+          throw ApiException.invalidResponse(
+            details: 'Missing "categories" key',
+          );
         }
         return categoriesJson
             .map((item) => MealCategory.fromJson(item as Map<String, dynamic>))
@@ -72,12 +74,29 @@ class MealApiService {
     );
   }
 
+  /// Searches for meals by name using the provided [query].
+  /// Returns an empty list if no meals match the search term.
+  Future<List<Meal>> searchMeals(String query) async {
+    if (query.trim().isEmpty) return <Meal>[];
+
+    return _safeApiCall(
+      uri: _buildUri('/search.php', {'s': query.trim()}),
+      onSuccess: (data) {
+        final List<dynamic>? mealsJson = data['meals'];
+        if (mealsJson == null) return <Meal>[];
+        return mealsJson
+            .map((item) => Meal.fromJson(item as Map<String, dynamic>))
+            .toList();
+      },
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Reusable Helper Methods (Senior Level Architecture)
   // ---------------------------------------------------------------------------
 
   /// A generic wrapper that orchestrates the entire API lifecycle.
-  /// 
+  ///
   /// Benefits:
   /// 1. **Zero Duplication**: Network, timeout, and HTTP error handling happens in one place.
   /// 2. **Type Safety**: Uses Generics `<T>` to return correctly typed data models.
@@ -88,7 +107,7 @@ class MealApiService {
   }) async {
     try {
       final response = await _client.get(uri).timeout(_timeoutDuration);
-      
+
       // 1. Validate HTTP Status
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw ApiException.httpError(response.statusCode);
@@ -106,13 +125,15 @@ class MealApiService {
 
       // 4. Transform to Domain Model
       return onSuccess(decodedBody);
-      
     } on SocketException catch (e) {
       throw ApiException.networkError(cause: e);
     } on TimeoutException catch (e) {
       throw ApiException.timeout(cause: e);
     } on FormatException catch (e) {
-      throw ApiException.invalidResponse(details: 'Invalid JSON format', cause: e);
+      throw ApiException.invalidResponse(
+        details: 'Invalid JSON format',
+        cause: e,
+      );
     } on ApiException {
       rethrow; // Pass custom exceptions up as-is
     } catch (e) {
