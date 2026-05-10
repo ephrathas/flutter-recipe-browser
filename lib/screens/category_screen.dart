@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/meal.dart';
 import '../services/meal_api_service.dart';
+import '../utils/pagination_controller.dart';
 import '../widgets/meal_card.dart';
 import '../widgets/loading_widget.dart';
 import '../widgets/custom_error_widget.dart';
@@ -39,6 +40,7 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final MealApiService _apiService = MealApiService();
   late Future<List<Meal>> _mealsFuture;
+  final PaginationController<Meal> _paginationController = PaginationController<Meal>(pageSize: 10);
 
   @override
   void initState() {
@@ -51,6 +53,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
     if (!mounted) return;
 
     setState(() {
+      _paginationController.reset();
       _mealsFuture = _apiService.fetchMealsByCategory(widget.categoryName);
     });
   }
@@ -124,23 +127,79 @@ class _CategoryScreenState extends State<CategoryScreen> {
             }
 
             // --- 4. Success State (GridView) ---
-            return GridView.builder(
+            final paginatedMeals = _paginationController.getPaginatedItems(meals);
+
+            return Column(
               key: const ValueKey('success'),
-              padding: const EdgeInsets.all(20),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20,
-                childAspectRatio: 0.75, // Slightly taller for better text spacing
-              ),
-              itemCount: meals.length,
-              itemBuilder: (context, index) {
-                final meal = meals[index];
-                return MealCard(
-                  meal: meal,
-                  onTap: () => _onMealSelected(context, meal),
-                );
-              },
+              children: [
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: GridView.builder(
+                      key: ValueKey('grid_${_paginationController.currentPage}'),
+                      padding: const EdgeInsets.all(20),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 20,
+                        mainAxisSpacing: 20,
+                        childAspectRatio: 0.75, // Slightly taller for better text spacing
+                      ),
+                      itemCount: paginatedMeals.length,
+                      itemBuilder: (context, index) {
+                        final meal = paginatedMeals[index];
+                        return MealCard(
+                          meal: meal,
+                          onTap: () => _onMealSelected(context, meal),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                if (meals.length > _paginationController.pageSize)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: _paginationController.hasPreviousPage()
+                              ? () {
+                                  setState(() {
+                                    _paginationController.previousPage();
+                                  });
+                                }
+                              : null,
+                          icon: const Icon(Icons.arrow_back),
+                          label: const Text('Previous'),
+                        ),
+                        Text(
+                          'Page ${_paginationController.currentPage + 1} of ${(meals.length / _paginationController.pageSize).ceil()}',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        FilledButton(
+                          onPressed: _paginationController.hasNextPage(meals.length)
+                              ? () {
+                                  setState(() {
+                                    _paginationController.nextPage(meals.length);
+                                  });
+                                }
+                              : null,
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Next'),
+                              SizedBox(width: 8),
+                              Icon(Icons.arrow_forward, size: 18),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             );
           },
         ),
