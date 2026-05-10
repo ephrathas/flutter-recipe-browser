@@ -1,0 +1,29 @@
+name: meal_explorer_app
+description: "A meal explorer app built with Flutter and Material 3."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # HTTP client for making API calls to TheMealDB
+  http: ^1.2.2
+
+  # Used to open external links (e.g., YouTube tutorials, source URLs)
+  url_launcher: ^6.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
