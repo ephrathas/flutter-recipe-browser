@@ -7,6 +7,18 @@ import 'package:http/http.dart' as http;
 import '../models/meal.dart';
 import '../models/meal_category.dart';
 import 'api_exception.dart';
+import 'cache_service.dart';
+
+/// A typed container representing either fresh or cached API data.
+///
+/// This keeps UI state strongly typed while still allowing the service
+/// layer to indicate whether the data came from local cache.
+class CachedResponse<T> {
+  final T data;
+  final bool fromCache;
+
+  const CachedResponse({required this.data, this.fromCache = false});
+}
 
 /// Senior-level API service layer for TheMealDB.
 ///
@@ -20,6 +32,7 @@ class MealApiService {
   static const Duration _timeoutDuration = Duration(seconds: 10);
 
   final http.Client _client;
+  final CacheService _cacheService = CacheService();
 
   /// Injects an http.Client for better testability and resource management.
   MealApiService({http.Client? client}) : _client = client ?? http.Client();
@@ -29,21 +42,42 @@ class MealApiService {
   // ---------------------------------------------------------------------------
 
   /// Fetches the list of all available meal categories.
-  Future<List<MealCategory>> fetchCategories() async {
-    return _safeApiCall(
-      uri: _buildUri('/categories.php'),
-      onSuccess: (data) {
-        final List<dynamic>? categoriesJson = data['categories'];
-        if (categoriesJson == null) {
-          throw ApiException.invalidResponse(
-            details: 'Missing "categories" key',
-          );
+  ///
+  /// When the network is unavailable, falls back to locally cached data
+  /// if it exists and is valid.
+  Future<CachedResponse<List<MealCategory>>> fetchCategories() async {
+    try {
+      final categories = await _safeApiCall(
+        uri: _buildUri('/categories.php'),
+        onSuccess: (data) {
+          final List<dynamic>? categoriesJson = data['categories'];
+          if (categoriesJson == null) {
+            throw ApiException.invalidResponse(
+              details: 'Missing "categories" key',
+            );
+          }
+          return categoriesJson
+              .map((item) => MealCategory.fromJson(item as Map<String, dynamic>))
+              .toList();
+        },
+      );
+
+      await _cacheService.saveCategories(categories);
+      return CachedResponse(data: categories, fromCache: false);
+    } on ApiException catch (error) {
+      if (_shouldUseCachedData(error)) {
+        final cachedCategories = await _cacheService.getCachedCategories();
+        if (cachedCategories != null && cachedCategories.isNotEmpty) {
+          return CachedResponse(data: cachedCategories, fromCache: true);
         }
-        return categoriesJson
-            .map((item) => MealCategory.fromJson(item as Map<String, dynamic>))
-            .toList();
-      },
-    );
+      }
+      rethrow;
+    }
+  }
+
+  bool _shouldUseCachedData(ApiException exception) {
+    return exception.cause is SocketException ||
+        exception.message.toLowerCase().contains('timed out');
   }
 
   /// Fetches meals filtered by a specific [category] name.

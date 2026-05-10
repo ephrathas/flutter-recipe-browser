@@ -28,7 +28,10 @@ Recipe Browser is a high-performance recipe discovery app that leverages TheMeal
 ## Features
 
 - **Category Explorer**: Browse a rich list of meal categories with high-quality thumbnails and descriptions
-- **Dynamic Meal Discovery**: Filter meals by category and explore thousands of recipes- **Recipe Search**: Real-time search with debounced API calls (450ms) for optimal performance.- **High-Fidelity Detail View**:
+- **Dynamic Meal Discovery**: Filter meals by category and explore thousands of recipes
+- **Recipe Search**: Real-time search with debounced API calls (450ms) for optimal performance
+- **Offline-Friendly Caching**: Category data is stored locally and shown when network access is unavailable
+- **High-Fidelity Detail View**:
   - Collapsible image headers with Hero transitions
   - Organized ingredients list with measurement parsing
   - Formatted, easy-to-read cooking instructions
@@ -45,6 +48,7 @@ Recipe Browser is a high-performance recipe discovery app that leverages TheMeal
 - **Framework**: Flutter (Channel Stable)
 - **Language**: Dart
 - **Networking**: http ^1.2.2
+- **Local Storage**: shared_preferences ^2.1.0
 - **Link Handling**: url_launcher ^6.3.1
 - **Design System**: Material 3 (Custom Theme)
 
@@ -122,6 +126,7 @@ The application implements comprehensive async/await patterns throughout:
 - **Mounted checks**: All async operations after await gaps include context.mounted verification to prevent memory leaks
 - **Error propagation**: Custom ApiException hierarchy ensures consistent error handling across all network operations
 - **Debounced search**: Timer-based debouncing (450ms) prevents excessive API calls during user input
+- **Cached category data**: Local JSON cache is used as a fallback when the network is unavailable
 
 ### Error Handling Architecture
 - **Custom exception hierarchy**: ApiException with 7 factory constructors covering all error scenarios

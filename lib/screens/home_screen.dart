@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final MealApiService _apiService = MealApiService();
 
   /// Storing the future in a variable is CRITICAL for performance.
-  late Future<List<MealCategory>> _categoriesFuture;
+  late Future<CachedResponse<List<MealCategory>>> _categoriesFuture;
 
   @override
   void initState() {
@@ -99,10 +99,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
-        child: FutureBuilder<List<MealCategory>>(
-          key: ValueKey(
-            _categoriesFuture,
-          ), // Ensures switcher triggers on refetch
+        child: FutureBuilder<CachedResponse<List<MealCategory>>>(
+          key: ValueKey(_categoriesFuture),
           future: _categoriesFuture,
           builder: (context, snapshot) {
             // --- 1. Loading State ---
@@ -123,7 +121,10 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             // --- 3. Success State ---
-            final categories = snapshot.data;
+            final response = snapshot.data;
+            final categories = response?.data;
+            final fromCache = response?.fromCache ?? false;
+
             if (categories == null || categories.isEmpty) {
               return const Center(
                 key: ValueKey('empty'),
@@ -131,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
 
-            return RefreshIndicator(
+            final categoryList = RefreshIndicator(
               key: const ValueKey('success'),
               onRefresh: () async => _initFetch(),
               child: ListView.builder(
@@ -146,8 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: SizedBox(
-                      height:
-                          240, // Increased height for better image presentation
+                      height: 240,
                       child: CategoryCard(
                         category: category,
                         onTap: () => _onCategorySelected(context, category),
@@ -156,6 +156,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
+            );
+
+            if (!fromCache) {
+              return categoryList;
+            }
+
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Chip(
+                        label: const Text('Cached Data'),
+                        backgroundColor: colorScheme.surfaceVariant,
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(child: categoryList),
+              ],
             );
           },
         ),
