@@ -58,12 +58,14 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   /// Securely launches the YouTube tutorial using url_launcher.
   Future<void> _launchYouTube(BuildContext context, String url) async {
-    final Uri uri = Uri.parse(url);
+    final Uri uri = Uri.parse(url.trim());
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        throw 'Could not launch $url';
+      // Modern url_launcher best practice: Try launching directly instead of 
+      // relying on canLaunchUrl, which often fails on Android 11+ / iOS 9+ 
+      // due to missing <queries> or LSApplicationQueriesSchemes.
+      final success = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!success) {
+        throw Exception('Could not launch $url');
       }
     } catch (e) {
       // CRITICAL: Always check context.mounted after an 'await' gap.
