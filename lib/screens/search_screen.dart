@@ -277,12 +277,12 @@ class _SearchScreenState extends State<SearchScreen> {
   /// Builds the responsive grid view for search results.
   Widget _buildResultsGrid(List<Meal> meals) {
     return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+      padding: const EdgeInsets.all(24),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 300,
+        mainAxisExtent: 280,
+        crossAxisSpacing: 24,
+        mainAxisSpacing: 24,
       ),
       itemCount: meals.length,
       itemBuilder: (context, index) {

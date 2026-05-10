@@ -114,11 +114,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.no_food_outlined, size: 64, color: colorScheme.onSurfaceVariant),
+                      Icon(Icons.no_meals_rounded, size: 72, color: colorScheme.primary.withValues(alpha: 0.5)),
                       const SizedBox(height: 16),
                       Text(
-                        'No meals found in this category.',
-                        style: theme.textTheme.titleMedium,
+                        'No meals found.',
+                        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'We could not find any recipes for ${widget.categoryName}.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -137,12 +143,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     duration: const Duration(milliseconds: 300),
                     child: GridView.builder(
                       key: ValueKey('grid_${_paginationController.currentPage}'),
-                      padding: const EdgeInsets.all(20),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 20,
-                        mainAxisSpacing: 20,
-                        childAspectRatio: 0.75, // Slightly taller for better text spacing
+                      padding: const EdgeInsets.all(24),
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 300,
+                        mainAxisExtent: 280,
+                        crossAxisSpacing: 24,
+                        mainAxisSpacing: 24,
                       ),
                       itemCount: paginatedMeals.length,
                       itemBuilder: (context, index) {

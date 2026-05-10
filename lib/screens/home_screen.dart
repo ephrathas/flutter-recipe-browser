@@ -126,33 +126,48 @@ class _HomeScreenState extends State<HomeScreen> {
             final fromCache = response?.fromCache ?? false;
 
             if (categories == null || categories.isEmpty) {
-              return const Center(
-                key: ValueKey('empty'),
-                child: Text('No categories found.'),
+              return Center(
+                key: const ValueKey('empty'),
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.search_off_rounded, size: 72, color: colorScheme.primary.withValues(alpha: 0.5)),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No categories found.',
+                        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Check your connection or try again later.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
               );
             }
 
             final categoryList = RefreshIndicator(
               key: const ValueKey('success'),
               onRefresh: () async => _initFetch(),
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
+              child: GridView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 400,
+                  mainAxisExtent: 260,
+                  mainAxisSpacing: 24,
+                  crossAxisSpacing: 24,
                 ),
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
                   final category = categories[index];
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: SizedBox(
-                      height: 240,
-                      child: CategoryCard(
-                        category: category,
-                        onTap: () => _onCategorySelected(context, category),
-                      ),
-                    ),
+                  return CategoryCard(
+                    category: category,
+                    onTap: () => _onCategorySelected(context, category),
                   );
                 },
               ),

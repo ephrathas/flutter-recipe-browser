@@ -50,10 +50,11 @@ class LoadingWidget extends StatelessWidget {
           children: [
             // Using Material 3's primary color for the indicator
             SizedBox(
-              width: size,
-              height: size,
+              width: size ?? 40,
+              height: size ?? 40,
               child: CircularProgressIndicator(
                 strokeWidth: 3,
+                strokeCap: StrokeCap.round,
                 valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
               ),
             ),

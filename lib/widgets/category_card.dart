@@ -46,10 +46,11 @@ class CategoryCard extends StatelessWidget {
 
     return Card(
       elevation: 0,
+      color: colorScheme.surfaceContainerLowest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
         ),
       ),
       clipBehavior: Clip.antiAlias, // Ensures image corners follow card shape
@@ -99,7 +100,7 @@ class CategoryCard extends StatelessWidget {
             Expanded(
               flex: 3,
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,22 +110,23 @@ class CategoryCard extends StatelessWidget {
                       category.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
                         color: colorScheme.onSurface,
+                        letterSpacing: -0.5,
                       ),
                     ),
                     
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     
                     // Shortened Description Preview
                     Text(
                       category.description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodySmall?.copyWith(
+                      style: textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
-                        height: 1.3,
+                        height: 1.4,
                       ),
                     ),
                   ],

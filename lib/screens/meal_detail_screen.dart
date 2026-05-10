@@ -138,9 +138,27 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 shadows: [Shadow(blurRadius: 10, color: Colors.black54)],
               ),
             ),
-            background: Hero(
-              tag: 'meal_${meal.id}',
-              child: Image.network(meal.thumbnailUrl, fit: BoxFit.cover),
+            background: Stack(
+              fit: StackFit.expand,
+              children: [
+                Hero(
+                  tag: 'meal_${meal.id}',
+                  child: Image.network(meal.thumbnailUrl, fit: BoxFit.cover),
+                ),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.8),
+                      ],
+                      stops: const [0.6, 1.0],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
