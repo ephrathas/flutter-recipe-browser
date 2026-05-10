@@ -95,7 +95,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 key: const ValueKey('error'),
                 appBar: AppBar(title: Text(widget.mealName ?? 'Error')),
                 body: CustomErrorWidget(
-                  errorMessage: snapshot.error.toString(),
+                  error: snapshot.error!,
                   onRetry: _initFetch,
                 ),
               );

@@ -115,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (snapshot.hasError) {
               return CustomErrorWidget(
                 key: const ValueKey('error'),
-                errorMessage: snapshot.error.toString(),
+                error: snapshot.error!,
                 onRetry: _initFetch,
               );
             }
@@ -173,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Chip(
                         label: const Text('Cached Data'),
-                        backgroundColor: colorScheme.surfaceVariant,
+                        backgroundColor: colorScheme.surfaceContainerHighest,
                       ),
                     ],
                   ),

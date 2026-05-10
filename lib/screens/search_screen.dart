@@ -206,7 +206,7 @@ class _SearchScreenState extends State<SearchScreen> {
         // Error state
         if (snapshot.hasError) {
           return CustomErrorWidget(
-            errorMessage: snapshot.error.toString(),
+            error: snapshot.error!,
             onRetry: _retrySearch,
           );
         }

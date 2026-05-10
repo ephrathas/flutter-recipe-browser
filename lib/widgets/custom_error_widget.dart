@@ -1,29 +1,31 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import '../services/api_exception.dart';
 
 /// A robust, reusable error display component for the application.
 /// 
 /// ---
 /// ## Architecture Benefits:
 /// 
-/// 1. **Decoupled Logic**: Screens only need to provide the error string and 
+/// 1. **Decoupled Logic**: Screens only need to provide the error object and 
 ///    the logic to re-trigger a fetch. They don't need to know how to 
-///    center elements, which icons to use, or how to style error buttons.
+///    extract the message, center elements, which icons to use, or how to style.
 /// 
 /// 2. **Contextual Recovery**: By accepting an optional `onRetry` callback, 
 ///    the widget empowers the user to recover from transient failures 
 ///    (like losing Wi-Fi) without navigating away or restarting the app.
 /// 
 /// 3. **Branding & Consistency**: Centralizing error UI ensures that if the 
-///    design team changes the "error" look, it can be updated globally 
-///    in seconds, maintaining a professional and cohesive brand image.
+///    design team changes the "error" look, it can be updated globally.
 /// 
-/// 4. **Accessibility**: This widget provides a central place to ensure 
-///    that error states have high-contrast text and meaningful icons 
-///    for all users.
+/// 4. **Defensive UI**: Never exposes raw stack traces or cryptic exception 
+///    messages to the user. Always falls back to friendly text.
 /// ---
 class CustomErrorWidget extends StatelessWidget {
-  /// The human-readable error message to display.
-  final String errorMessage;
+  /// The original error object caught by the FutureBuilder or Try/Catch.
+  final Object error;
 
   /// Optional callback to re-attempt the failed operation.
   /// If null, the retry button will not be displayed.
@@ -34,10 +36,51 @@ class CustomErrorWidget extends StatelessWidget {
 
   const CustomErrorWidget({
     super.key,
-    required this.errorMessage,
+    required this.error,
     this.onRetry,
     this.icon,
   });
+
+  /// Extracts a safe, user-friendly error message from the exception.
+  String _getErrorMessage() {
+    if (error is ApiException) {
+      return (error as ApiException).message;
+    } else if (error is SocketException) {
+      return 'No internet connection. Please check your network and try again.';
+    } else if (error is TimeoutException) {
+      return 'The connection timed out. Please try again.';
+    } else if (error is FormatException) {
+      return 'Received invalid data from the server. Please try again later.';
+    }
+    // Generic fallback for any other unexpected exceptions to prevent stack traces in UI
+    return 'An unexpected error occurred. Please try again.';
+  }
+
+  /// Determines the most appropriate contextual icon for the error type.
+  IconData _getErrorIcon() {
+    if (icon != null) return icon!;
+
+    if (error is ApiException) {
+      final apiError = error as ApiException;
+      if (apiError.cause is SocketException || 
+          apiError.message.toLowerCase().contains('internet') || 
+          apiError.message.toLowerCase().contains('network')) {
+        return Icons.wifi_off_rounded;
+      }
+      if (apiError.cause is TimeoutException || 
+          apiError.message.toLowerCase().contains('time')) {
+        return Icons.timer_off_rounded;
+      }
+      if (apiError.statusCode == 404) {
+        return Icons.search_off_rounded;
+      }
+    } else if (error is SocketException) {
+      return Icons.wifi_off_rounded;
+    } else if (error is TimeoutException) {
+      return Icons.timer_off_rounded;
+    }
+    return Icons.error_outline_rounded;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +103,7 @@ class CustomErrorWidget extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                icon ?? Icons.error_outline_rounded,
+                _getErrorIcon(),
                 size: 48,
                 color: colorScheme.error,
               ),
@@ -82,7 +125,7 @@ class CustomErrorWidget extends StatelessWidget {
             
             // Detailed, user-friendly error message
             Text(
-              errorMessage,
+              _getErrorMessage(),
               textAlign: TextAlign.center,
               style: textTheme.bodyLarge?.copyWith(
                 color: colorScheme.onSurfaceVariant,

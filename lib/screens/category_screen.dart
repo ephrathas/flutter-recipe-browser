@@ -99,7 +99,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             if (snapshot.hasError) {
               return CustomErrorWidget(
                 key: const ValueKey('error'),
-                errorMessage: snapshot.error.toString(),
+                error: snapshot.error!,
                 onRetry: _initFetch,
               );
             }
